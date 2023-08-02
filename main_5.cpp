@@ -27,50 +27,129 @@ class Cache{
    virtual int get(int) = 0; //get function
 
 };
-#include <deque>
-class LRUCache : public Cache
-{
+#include <iostream>
+#include <list>
+#define key first
+#define val second
+class LRUCache {
+    int cp;
+    map<int, list<pair<int, int> >::iterator> mp;
+    list<pair<int, int> > lru;
 public:
-    LRUCache(int iCapacity){
-        Cache::cp = iCapacity;
+    LRUCache(int capacity) : cp(capacity){}
+    void set(int key, int val) {
+        if(mp.find(key) != mp.end()) {
+            mp[key]->key = key;
+            mp[key]->val = val;
+        }
+        else {
+            lru.push_front({key, val});
+            mp[key] = lru.begin();
+            if(lru.size() > cp) {
+                mp.erase(lru.back().key);
+                lru.pop_back();
+            }
+        }
     }
-    void set(int iKey, int iValue){
-        if(mp.find(iKey)==mp.end())
-        {
-            Node* pNext = NULL;
-            if(head!=NULL) pNext = head;
-
-            head = new Node(NULL, pNext, iKey, iValue);
-            if(head->next == NULL) tail = head;
-
-            mp.insert({iKey, head});
-            if(pNext != NULL) pNext->prev = head;
+    int get(int key) {
+        if(mp.find(key) != mp.end()) {
+            lru.push_front(*mp[key]);
+            lru.erase(mp[key]);
+            mp[key] = lru.begin();
+            return mp[key]->val;
         }
         else
-        {
-            Node* curr = mp.find(iKey)->second;
-            Node* pNext = NULL;
-            if(head!=NULL && head!=curr) pNext = head;
-
-            head = curr;
-            head->next = pNext;
-            if(pNext != NULL) pNext->prev = head;
-        }
-
-        if(mp.size()>cp){
-            int tailKey = tail->key;
-            Node *pPrev = mp.find(tailKey)->second->prev;
-            mp.erase(mp.find(tailKey));
-            tail = pPrev;
-            tail->next = NULL;
-        }
-    }
-    int get(int iKey){
-        auto itr = mp.find(iKey);
-        if(itr!=mp.end()) return itr->second->value;
-        else return -1;
+            return -1;
     }
 };
+// class LRUCache : public Cache
+// {
+// public:
+//     LRUCache(int iCapacity){
+//         Cache::cp = iCapacity;
+//     }
+//     void set(int iKey, int iValue){
+//         if(mp.empty()) //if nothing is in mp
+//         {
+//             head = tail = new Node(NULL, NULL, iKey, iValue);
+//             mp.insert({iKey, head});
+//         }
+//         else
+//         {
+//             auto itr = mp.find(iKey);
+//             Node *curr;
+//             if(itr != mp.end()) //if element exists
+//             {
+//                 curr = itr->second;
+//                 if(curr!=head)
+//                 {
+//                     if(curr==tail)
+//                     {
+//                         //przypisz prev-sasiadowi null jako nexta
+//                         curr->prev->next = NULL;
+
+//                         //wpisz prev-sasiada do taila
+//                         tail = curr->prev;
+//                     }
+//                     else
+//                     {
+//                         //przypisz sasiadom siebie nawzajem i pozegnaj sie
+//                         curr->prev->next = curr->next;
+//                         curr->next->prev = curr->prev;
+//                     }
+//                     //wpisz sobie heada jako next-sasiada
+//                     curr->next = head;
+
+//                     //wpisz siebie headowi jako prev-sasiada
+//                     head->prev = curr;
+
+//                     //ustaw sobie preva na null
+//                     curr->prev = NULL;
+
+//                     //wpisz sie do heada
+//                     head = curr;
+//                 }//if curr==head do nothing;
+//             }
+//             else //if element is new
+//             {
+//                 //ustaw nowego noda i zarejestruj sasiada nako nexta
+//                 curr = new Node(NULL, head, iKey, iValue);
+
+//                 //zaktualizuj sasiada (ustaw siebie jako preva)
+//                 head->prev = curr;
+
+//                 //wpisz element do head
+//                 head = curr;
+
+//                 //wpisz element do mapy
+//                 mp.insert({iKey, head});
+
+//                 //usun nadmiarowy ogon jesli trzeba
+//                 if(mp.size()>cp)
+//                 {
+//                     //przepisz przedostatniego do nowego ogona
+//                     Node* newTail = tail->prev;
+
+//                     //usun stary ogon
+//                     mp.erase(mp.find(tail->key));
+//                     // delete tail;
+
+//                     //zaktualizuj ogon
+//                     tail = newTail;
+//                     tail->next = NULL;
+//                 }
+//             }
+//         }
+//     }
+
+//     int get(int iKey){
+//         auto itr = mp.find(iKey);
+//         if(itr!=mp.end()) return itr->second->value;
+//         else return -1;
+//     }
+// };
+
+
 
 int main() {
    int n, capacity,i;
